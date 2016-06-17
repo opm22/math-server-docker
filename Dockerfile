@@ -66,7 +66,7 @@ RUN wget https://www.kernel.org/pub/software/scm/git/git-2.9.0.tar.gz \
 	&& tar xf git-2.9.0.tar.gz && cd git-2.9.0 \
 	&& make -j"$(nproc --all)" prefix=/usr/local all \
 	&& make prefix=/usr/local -j"$(nproc --all)" install \
-	&& cd .. && rm -f git-2.9.0.tar.xz && rm -rf git-2.9.0
+	&& cd .. && rm -f git-2.9.0.tar.gz && rm -rf git-2.9.0
 
 # llvm needs CMake 2.8.12.2 or higher
 # https://cmake.org/download/
@@ -114,46 +114,6 @@ RUN pip3 install -U pip
 
 # LLVM deps
 RUN yum -y install libedit-devel libffi-devel swig python-devel
-
-# LLVM
-# Clang /tools/clang
-# CompilerRT /projects/compiler-rt
-# libc++ /projects/libcxx
-# libc++abi /projects/libcxxabi
-# lldb /tools/lldb
-RUN wget http://llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz \
-	&& wget http://llvm.org/releases/3.7.1/cfe-3.7.1.src.tar.xz \
-	&& wget http://llvm.org/releases/3.7.1/compiler-rt-3.7.1.src.tar.xz \
-	&& wget http://llvm.org/releases/3.7.1/libcxx-3.7.1.src.tar.xz \
-	&& wget http://llvm.org/releases/3.7.1/libcxxabi-3.7.1.src.tar.xz \
-	&& wget http://llvm.org/releases/3.7.1/lldb-3.7.1.src.tar.xz \
-	&& mkdir llvm \
-	&& tar xf llvm-3.7.1.src.tar.xz -C llvm --strip-components=1 \
-	&& mkdir llvm/tools/clang \
-	&& tar xf cfe-3.7.1.src.tar.xz -C llvm/tools/clang --strip-components=1 \
-	&& mkdir llvm/projects/compiler-rt \
-	&& tar xf compiler-rt-3.7.1.src.tar.xz -C llvm/projects/compiler-rt --strip-components=1 \
-	&& mkdir llvm/projects/libcxx \
-	&& tar xf libcxx-3.7.1.src.tar.xz -C llvm/projects/libcxx --strip-components=1 \
-	&& mkdir llvm/projects/libcxxabi \
-	&& tar xf libcxxabi-3.7.1.src.tar.xz -C llvm/projects/libcxxabi --strip-components=1 \
-	&& mkdir llvm/tools/lldb \
-	&& tar xf lldb-3.7.1.src.tar.xz -C llvm/tools/lldb --strip-components=1 \
-	&& rm -f *tar.xz
-
-# http://llvm.org/docs/CMake.html
-# find / -iname 'ffi.h'
-# cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_PIC=ON -DLLVM_ENABLE_FFI=ON -DFFI_INCLUDE_DIR=/usr/lib64/libffi-3.0.5/include  ../llvm
-RUN mkdir ~/llvm_build \
-	&& cd ~/llvm_build \
-	&& ../llvm/configure --enable-shared
-
-RUN cd ~/llvm_build \
-	&& make ENABLE_OPTIMIZED=1 DISABLE_ASSERTIONS=1 -j"$(nproc --all)" \
-	&& make -j"$(nproc --all)" install \
-	&& ln -s /usr/local/lib/libLLVM-3.7.1.so /usr/local/lib/libLLVM.so \
-	&& ldconfig \
-	&& cd .. && rm -rf llvm_build && rm -rf llvm
 
 # node
 RUN wget https://github.com/nodejs/node/archive/v6.2.1.tar.gz \
@@ -229,8 +189,8 @@ RUN R -e 'install.packages("shiny")' \
 	&& cd && rm -f SHINYSERVERMD5 && rm -f shiny-server-1.4.2.786-rh5-x86_64.rpm
 
 # Julia
-RUN wget https://github.com/JuliaLang/julia/archive/v0.4.5.tar.gz \
-        && tar xf v0.4.5.tar.gz
+RUN wget https://github.com/JuliaLang/julia/releases/download/v0.4.5/julia-0.4.5-full.tar.gz \
+        && tar xf julia-0.4.5-full.tar.gz
 
 ADD julia-Make.user julia-0.4.5/Make.user
 
@@ -243,7 +203,7 @@ RUN cpuid/cpuid >> julia-0.4.5/Make.user
 RUN cd julia-0.4.5 \
 	&& make -j"$(nproc --all)" \
 	&& make -j"$(nproc --all)" install \
-	&& cd .. && rm -rf julia-0.4.5 && rm -f v0.4.5.tar.gz \
+	&& cd .. && rm -rf julia-0.4.5 && rm -f julia-0.4.5-full.tar.gz \
 	&& ln -s /usr/local/julia/bin/julia /usr/local/bin/julia
 
 # Init package folder on root's home folder
